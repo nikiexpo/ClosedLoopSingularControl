@@ -1,6 +1,6 @@
 load("sol_SMIB_CL_16_03_25.mat")
 load("sol_SMIB_OL_17_03_25.mat")
-
+load("sol_SMIB_CL_multiConds2.mat")
 
 xx=linspace(solutionOL.T(1,1),solutionOL.tf,10000);
 %%
@@ -123,15 +123,17 @@ exportgraphics(f,"SMIB_Tiled.eps", "Resolution",600)
 
 %% 
 
+
 figure(5)
 plot(solutionCL.t_sol(tsw:end), GLC)
 grid on 
 xlabel('Time [s]',"Interpreter","latex")
 ylabel('GLC',"Interpreter","latex")
 hold off
-figure(6)
+
+
 %phase potrait
-x1_range = linspace(-2.5,2.5,20);
+x1_range = linspace(-2.5,1.25,20);
 x2_range = linspace(-15,15, 20);
 [x,y] = meshgrid(x1_range, x2_range);
 u = zeros(size(x));
@@ -142,16 +144,31 @@ for i = 1:numel(x)
     u(i) = derivs(1);
     v(i) = derivs(2);
 end
-hold on
+
+figure(7)
 quiver(x,y,u,v,'r')
 xlabel('x_1')
 ylabel('x_2')
-p1 = plot(solutionCL.x_sol(:,1), solutionCL.x_sol(:,2), "m-o");
-psw = plot(solutionCL.x_sol(tsw,1), solutionCL.x_sol(tsw,2), "k^", MarkerSize=12, LineWidth=2);
+
+figure(6)
+
+hold on
+% quiver(x,y,u,v,'r')
+xlabel('x_1')
+ylabel('x_2')
+% plot(solutionCL.x_sol(:,1), solutionCL.x_sol(:,2), "m-", LineWidth=2);
+% plot(solutionCL.x_sol(1,1), solutionCL.x_sol(1,2), "m*", LineWidth=2);
+for j = 1:5
+    xtemp = cell2mat(sol.x_sol(j));
+    plot(xtemp(:,1), xtemp(:,2), LineWidth=2);
+    plot(xtemp(1,1), xtemp(1,2), "m*", LineWidth=2);
+end
+% psw = plot(solutionCL.x_sol(tsw,1), solutionCL.x_sol(tsw,2), "k^", MarkerSize=12, LineWidth=2);
 hold off
-xlim([-3, 3])
-ylim([-16,16])
-legend(p1, {"Closed loop solution"})
+xlim([-3.5, 5])
+ylim([-20,20])
+% legend(p1, {"Closed loop solution"})
+grid on
 %%
 
 function [dxdt, u] = singular_interval_model(t, x, data)
