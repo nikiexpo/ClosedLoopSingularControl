@@ -1,6 +1,6 @@
 load("sol_SMIB_CL_16_03_25.mat")
 load("sol_SMIB_OL_17_03_25.mat")
-load("sol_SMIB_CL_multiConds2.mat")
+load("sol_SMIB_CL_multiConds3.mat")
 
 xx=linspace(solutionOL.T(1,1),solutionOL.tf,10000);
 %%
@@ -133,42 +133,79 @@ hold off
 
 
 %phase potrait
-x1_range = linspace(-2.5,1.25,20);
-x2_range = linspace(-15,15, 20);
+x1_range = linspace(-5,5,20);
+x2_range = linspace(-20,20, 20);
 [x,y] = meshgrid(x1_range, x2_range);
 u = zeros(size(x));
 v = zeros(size(x));
 t=0;
 for i = 1:numel(x)
     derivs = singular_interval_model(t, [x(i), y(i)], data);
+    der_mag = sqrt(derivs(1)^2 + derivs(2)^2);
+    % u(i) = derivs(1)/der_mag;
+    % v(i) = derivs(2)/der_mag;
     u(i) = derivs(1);
     v(i) = derivs(2);
 end
-
+un = u./sqrt(u.^2 + v.^2);
+vn = v./sqrt(u.^2 + v.^2);
 figure(7)
 quiver(x,y,u,v,'r')
+% quiver(x,y,un,vn,'r')
 xlabel('x_1')
 ylabel('x_2')
 
-figure(6)
 
+%%
+f = figure(6);
+f.Position = [100, 100, 900, 500];
+a1 = axes('FontSize', 14, 'NextPlot', 'add');
+a1.GridLineStyle = '--';
+a1.GridColor = 'k';
+a1.GridAlpha = 0.9 ;
 hold on
 % quiver(x,y,u,v,'r')
-xlabel('x_1')
-ylabel('x_2')
+xlabel('$x_1$',"Interpreter", "latex")
+ylabel('$x_2$',"Interpreter", "latex")
 % plot(solutionCL.x_sol(:,1), solutionCL.x_sol(:,2), "m-", LineWidth=2);
 % plot(solutionCL.x_sol(1,1), solutionCL.x_sol(1,2), "m*", LineWidth=2);
-for j = 1:5
+for j = 1:size(sol.x_sol,2)
     xtemp = cell2mat(sol.x_sol(j));
     plot(xtemp(:,1), xtemp(:,2), LineWidth=2);
-    plot(xtemp(1,1), xtemp(1,2), "m*", LineWidth=2);
+    pi = plot(xtemp(1,1), xtemp(1,2), "r*", LineWidth=2, MarkerSize=14);
 end
 % psw = plot(solutionCL.x_sol(tsw,1), solutionCL.x_sol(tsw,2), "k^", MarkerSize=12, LineWidth=2);
 hold off
-xlim([-3.5, 5])
-ylim([-20,20])
-% legend(p1, {"Closed loop solution"})
+xlim([-3.5, 5.5])
+ylim([-20,20.5])
+legend(pi, {"Initial Conditions"}, "Interpreter", "latex")
 grid on
+exportgraphics(f,"PhasePotraitMulti.eps", "Resolution",600)
+%%
+figure(11)
+int = [9];
+hold on
+for j = 1:length(int)
+    utemp = cell2mat(sol.u_sol(int(j)));
+    ttemp = cell2mat(sol.t_sol(int(j)));
+    plot(ttemp(1:end-1), utemp, LineWidth=2);
+end
+hold off
+%% 
+figure(12)
+for j = 1:size(sol.x_sol,2)
+    xtemp = cell2mat(sol.x_sol(j));
+    % utemp = cell2mat(sol.u_sol(j));
+    ttemp = cell2mat(sol.t_sol(j));
+    plot3(xtemp(:,1), xtemp(:,2),ttemp, LineWidth=2)
+hold on
+end
+plot3(solutionCL.x_sol(tsw:end,1), solutionCL.x_sol(tsw:end,2), linspace(0,4, length(solutionCL.t_sol(tsw:end))))
+hold off
+grid on
+xlabel('x_1')
+ylabel('x_2')
+zlabel('time')
 %%
 
 function [dxdt, u] = singular_interval_model(t, x, data)
